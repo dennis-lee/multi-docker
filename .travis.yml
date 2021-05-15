@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dennislcfx/react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+  - docker run -e CI=true dennislcfx/react-test npm run test
+
+after_success:
+  - docker build -t dennislcfx/multi-client ./client
+  - docker build -t dennislcfx/multi-nginx ./nginx
+  - docker build -t dennislcfx/multi-server ./server
+  - docker build -t dennislcfx/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push dennislcfx/multi-client
+  - docker push dennislcfx/multi-nginx
+  - docker push dennislcfx/multi-server
+  - docker push dennislcfx/multi-worker
